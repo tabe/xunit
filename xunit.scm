@@ -100,6 +100,6 @@
             (lambda (e) (display e (current-error-port)))
             (reverse *failure*))
            (display "failed.\n")
-           (exit 1))))
+           (exit #f))))
 
 )
