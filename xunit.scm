@@ -33,6 +33,7 @@
           assert-=
           assert-boolean=?
           assert-bytevector=?
+          assert-char-ci=?
           assert-char=?
           assert-eq?
           assert-equal?
@@ -81,6 +82,7 @@
   (define-assert-equivalence =)
   (define-assert-equivalence boolean=?)
   (define-assert-equivalence bytevector=?)
+  (define-assert-equivalence char-ci=?)
   (define-assert-equivalence char=?)
   (define-assert-equivalence eq?)
   (define-assert-equivalence equal?)
