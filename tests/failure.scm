@@ -2,6 +2,7 @@
 
 (import (rnrs) (xunit))
 
+(add-failure "this is an issue")
 (assert-= 1 (+ 1 1))
 (assert-boolean=? #t (not (not #f)))
 (assert-char-ci=? #\Z (integer->char (+ 25 (char->integer #\Ａ))))

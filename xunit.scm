@@ -29,7 +29,8 @@
 ;;   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (library (xunit)
-  (export define-assert-equivalence
+  (export add-failure
+          define-assert-equivalence
           assert-=
           assert-boolean=?
           assert-bytevector=?
@@ -48,16 +49,19 @@
 
   (define *failure* '())
 
-  (define (add-failure expected expr actual)
-    (let ((message (call-with-string-output-port
-                    (lambda (port)
-                      (put-datum port expected)
-                      (put-string port " expected, but ")
-                      (put-datum port expr)
-                      (put-string port " => ")
-                      (put-datum port actual)
-                      (newline port)))))
-      (set! *failure* (cons message *failure*))))
+  (define-syntax add-failure
+    (syntax-rules ()
+      ((_ message)
+       (set! *failure* (cons (string-append message "\n") *failure*)))
+      ((_ expected expr actual)
+       (add-failure
+        (call-with-string-output-port
+         (lambda (port)
+           (put-datum port expected)
+           (put-string port " expected, but ")
+           (put-datum port 'expr)
+           (put-string port " => ")
+           (put-datum port actual)))))))
 
   (define-syntax assert-equivalence
     (syntax-rules ()
@@ -65,7 +69,7 @@
        (let ((actual expr))
          (guard (con
                  ((assertion-violation? con)
-                  (add-failure expected 'expr actual)))
+                  (add-failure expected expr actual)))
            (assert (equiv expected actual)))))))
 
   (define-syntax define-assert-equivalence
@@ -101,6 +105,7 @@
            (for-each
             (lambda (e) (display e (current-error-port)))
             (reverse *failure*))
+           (flush-output-port (current-error-port))
            (display "failed.\n")
            (exit #f))))
 
