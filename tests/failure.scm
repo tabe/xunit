@@ -8,5 +8,6 @@
 (assert-char-ci=? #\Z (integer->char (+ 25 (char->integer #\Ａ))))
 (assert-char=? #\Z (integer->char (+ 25 (char->integer #\a))))
 (assert-string=? "R6RS" (string-append "R" (number->string 5) "RS"))
+(assert-zero? (+ 1 1))
 
 (report)

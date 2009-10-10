@@ -44,6 +44,7 @@
           assert-string-ci=?
           assert-string=?
           assert-symbol=?
+          assert-zero?
           report)
   (import (rnrs))
 
@@ -96,6 +97,11 @@
   (define-assert-equivalence string-ci=?)
   (define-assert-equivalence string=?)
   (define-assert-equivalence symbol=?)
+
+  (define-syntax assert-zero?
+    (syntax-rules ()
+      ((_ expr)
+       (assert-= 0 expr))))
 
   (define (report)
     (cond ((null? *failure*)
