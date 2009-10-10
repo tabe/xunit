@@ -29,7 +29,8 @@
 ;;   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (library (xunit)
-  (export add-failure
+  (export add-message
+          add-failure
           define-assert-equivalence
           assert-=
           assert-boolean=?
@@ -45,15 +46,25 @@
           assert-string=?
           assert-symbol=?
           assert-zero?
+          skip-unless
           report)
   (import (rnrs))
 
-  (define *failure* '())
+  (define *result* #t)
+
+  (define *messages* '())
+
+  (define-syntax add-message
+    (syntax-rules ()
+      ((_ message)
+       (set! *messages* (cons (string-append message "\n") *messages*)))))
 
   (define-syntax add-failure
     (syntax-rules ()
       ((_ message)
-       (set! *failure* (cons (string-append message "\n") *failure*)))
+       (begin
+         (set! *result* #f)
+         (add-message message)))
       ((_ expected expr actual)
        (add-failure
         (call-with-string-output-port
@@ -63,6 +74,20 @@
            (put-datum port 'expr)
            (put-string port " => ")
            (put-datum port actual)))))))
+
+  (define-syntax skip-unless
+    (syntax-rules ()
+      ((_ test assertion ...)
+       (if test
+           (begin assertion ...)
+           (add-message
+            (string-append "skipped:"
+                           (call-with-string-output-port
+                            (lambda (port)
+                              (begin
+                                (put-string port "\n  ")
+                                (put-datum port 'assertion))
+                              ...))))))))
 
   (define-syntax assert-equivalence
     (syntax-rules ()
@@ -104,14 +129,14 @@
        (assert-= 0 expr))))
 
   (define (report)
-    (cond ((null? *failure*)
+    (for-each
+     (lambda (e) (display e (current-error-port)))
+     (reverse *messages*))
+    (flush-output-port (current-error-port))
+    (cond (*result*
            (display "passed.\n")
            (exit))
           (else
-           (for-each
-            (lambda (e) (display e (current-error-port)))
-            (reverse *failure*))
-           (flush-output-port (current-error-port))
            (display "failed.\n")
            (exit #f))))
 
