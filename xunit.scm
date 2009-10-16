@@ -45,6 +45,32 @@
           assert-string-ci=?
           assert-string=?
           assert-symbol=?
+          assert-boolean?
+          assert-char?
+          assert-complex?
+          assert-even?
+          assert-exact?
+          assert-finite?
+          assert-inexact?
+          assert-infinite?
+          assert-integer-valued?
+          assert-integer?
+          assert-list?
+          assert-nan?
+          assert-negative?
+          assert-null?
+          assert-number?
+          assert-odd?
+          assert-pair?
+          assert-positive?
+          assert-procedure?
+          assert-rational-valued?
+          assert-rational?
+          assert-real-valued?
+          assert-real?
+          assert-string?
+          assert-symbol?
+          assert-vector?
           assert-zero?
           skip-unless
           report)
@@ -98,6 +124,15 @@
                   (add-failure expected expr actual)))
            (assert (equiv expected actual)))))))
 
+  (define-syntax assert-predicate
+    (syntax-rules ()
+      ((_ pred expr)
+       (let ((actual expr))
+         (guard (con
+                 ((assertion-violation? con)
+                  (add-failure 'pred expr actual)))
+           (assert (pred actual)))))))
+
   (define-syntax define-assert-equivalence
     (lambda (x)
       (syntax-case x ()
@@ -108,6 +143,17 @@
                  (syntax-rules ()
                    ((_ expected expr)
                     (assert-equivalence equiv expected expr))))))))))
+
+  (define-syntax define-assert-predicate
+    (lambda (x)
+      (syntax-case x ()
+        ((k pred)
+         (let ((n (string->symbol (string-append "assert-" (symbol->string (syntax->datum #'pred))))))
+           (with-syntax ((name (datum->syntax #'k n)))
+             #'(define-syntax name
+                 (syntax-rules ()
+                   ((_ expr)
+                    (assert-predicate pred expr))))))))))
 
   (define-assert-equivalence =)
   (define-assert-equivalence boolean=?)
@@ -123,10 +169,33 @@
   (define-assert-equivalence string=?)
   (define-assert-equivalence symbol=?)
 
-  (define-syntax assert-zero?
-    (syntax-rules ()
-      ((_ expr)
-       (assert-= 0 expr))))
+  (define-assert-predicate boolean?)
+  (define-assert-predicate char?)
+  (define-assert-predicate complex?)
+  (define-assert-predicate even?)
+  (define-assert-predicate exact?)
+  (define-assert-predicate finite?)
+  (define-assert-predicate inexact?)
+  (define-assert-predicate infinite?)
+  (define-assert-predicate integer-valued?)
+  (define-assert-predicate integer?)
+  (define-assert-predicate list?)
+  (define-assert-predicate nan?)
+  (define-assert-predicate negative?)
+  (define-assert-predicate null?)
+  (define-assert-predicate number?)
+  (define-assert-predicate odd?)
+  (define-assert-predicate pair?)
+  (define-assert-predicate positive?)
+  (define-assert-predicate procedure?)
+  (define-assert-predicate rational-valued?)
+  (define-assert-predicate rational?)
+  (define-assert-predicate real-valued?)
+  (define-assert-predicate real?)
+  (define-assert-predicate string?)
+  (define-assert-predicate symbol?)
+  (define-assert-predicate vector?)
+  (define-assert-predicate zero?)
 
   (define (report)
     (for-each
