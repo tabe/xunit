@@ -3,6 +3,7 @@
 (import (rnrs) (xunit))
 
 (add-message "this is a message")
+(assert-raise message-condition? (raise (make-message-condition "OK")))
 (assert-= 2 (+ 1 1))
 (assert-boolean=? #t (not (not (not #f))))
 (assert-char-ci=? #\z (integer->char (+ 25 (char->integer #\A))))

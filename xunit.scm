@@ -33,6 +33,7 @@
           add-failure
           define-assert-equivalence
           define-assert-predicate
+          assert-raise
           ;;
           assert-=
           assert-boolean=?
@@ -261,6 +262,26 @@
                  (syntax-rules ()
                    ((_ expr0 expr1 (... ...))
                     (assert-predicate pred expr0 expr1 (... ...)))))))))))
+
+  (define-syntax assert-raise
+    (syntax-rules ()
+      ((_ pred expr ...)
+       (guard (obj
+               ((pred obj))
+               (else (add-failure
+                      (call-with-string-output-port
+                       (lambda (port)
+                         (put-string port "an object satisfying ")
+                         (put-datum port 'pred)
+                         (put-string port " expected to be raised, but actually ")
+                         (put-datum port obj))))))
+         expr ...
+         (add-failure
+          (call-with-string-output-port
+           (lambda (port)
+             (put-string port "an object satisfying ")
+             (put-datum port 'pred)
+             (put-string port " expected to be raised, but never"))))))))
 
   ;; for Base
   (define-assert-equivalence =)
