@@ -29,8 +29,8 @@
 ;;   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (library (xunit)
-  (export add-message
-          add-failure
+  (export add-message!
+          fail!
           define-assert-equivalence
           define-assert-predicate
           assert-raise
@@ -173,26 +173,28 @@
           assert-who-condition?
           ;;
           skip-unless
-          report)
+          report
+          reset!)
   (import (rnrs))
 
   (define *result* #t)
 
   (define *messages* '())
 
-  (define-syntax add-message
+  (define-syntax add-message!
     (syntax-rules ()
       ((_ message)
        (set! *messages* (cons (string-append message "\n") *messages*)))))
 
-  (define-syntax add-failure
+  (define-syntax fail!
     (syntax-rules ()
       ((_ message)
        (begin
          (set! *result* #f)
-         (add-message message)))
+         (add-message! message)
+         #f))
       ((_ expected expr actual)
-       (add-failure
+       (fail!
         (call-with-string-output-port
          (lambda (port)
            (put-datum port expected)
@@ -206,7 +208,7 @@
       ((_ test assertion ...)
        (if test
            (begin assertion ...)
-           (add-message
+           (add-message!
             (string-append "skipped:"
                            (call-with-string-output-port
                             (lambda (port)
@@ -221,7 +223,7 @@
        (let ((actual expr))
          (guard (con
                  ((assertion-violation? con)
-                  (add-failure expected expr actual)))
+                  (fail! expected expr actual)))
            (assert (equiv expected actual)))))))
 
   (define-syntax assert-predicate
@@ -234,7 +236,7 @@
                    ...)
                (guard (con
                        ((assertion-violation? con)
-                        (add-failure
+                        (fail!
                          (call-with-string-output-port
                           (lambda (port)
                             (put-datum port '(pred expr0 expr1 ...))
@@ -268,7 +270,7 @@
       ((_ pred expr ...)
        (guard (obj
                ((pred obj))
-               (else (add-failure
+               (else (fail!
                       (call-with-string-output-port
                        (lambda (port)
                          (put-string port "an object satisfying ")
@@ -276,7 +278,7 @@
                          (put-string port " expected to be raised, but actually ")
                          (put-datum port obj))))))
          expr ...
-         (add-failure
+         (fail!
           (call-with-string-output-port
            (lambda (port)
              (put-string port "an object satisfying ")
@@ -433,5 +435,9 @@
           (else
            (display "failed.\n")
            (exit #f))))
+
+  (define (reset!)
+    (set! *result* #t)
+    (set! *messages* '()))
 
 )

@@ -2,7 +2,11 @@
 
 (import (rnrs) (xunit))
 
-(add-message "this is a message")
+(add-message! "this is a message")
+
+(fail! "this is a to-be-reset failure")
+(reset!)
+
 (assert-raise message-condition? (raise (make-message-condition "OK")))
 (assert-= 2 (+ 1 1))
 (assert-boolean=? #t (not (not (not #f))))

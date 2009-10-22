@@ -2,7 +2,7 @@
 
 (import (rnrs) (xunit))
 
-(add-failure "this is an issue")
+(fail! "this is an issue")
 (assert-raise error? (raise (make-message-condition "OK")))
 (assert-raise integer? (+ 1 1))
 (assert-= 1 (+ 1 1))
