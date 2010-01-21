@@ -1,5 +1,5 @@
 ;;
-;;   Copyright (c) 2009 Takeshi Abe. All rights reserved.
+;;   Copyright (c) 2009,2010 Takeshi Abe. All rights reserved.
 ;;
 ;;   Redistribution and use in source and binary forms, with or without
 ;;   modification, are permitted provided that the following conditions
@@ -179,18 +179,24 @@
 
   (define *result* #t)
 
+  (define (set-result! r)
+    (set! *result* r))
+
   (define *messages* '())
+
+  (define (push-message! message)
+    (set! *messages* (cons (string-append message "\n") *messages*)))
 
   (define-syntax add-message!
     (syntax-rules ()
       ((_ message)
-       (set! *messages* (cons (string-append message "\n") *messages*)))))
+       (push-message! message))))
 
   (define-syntax fail!
     (syntax-rules ()
       ((_ message)
        (begin
-         (set! *result* #f)
+         (set-result! #f)
          (add-message! message)
          #f))
       ((_ expected expr actual)
@@ -437,7 +443,7 @@
            (exit #f))))
 
   (define (reset!)
-    (set! *result* #t)
+    (set-result! #t)
     (set! *messages* '()))
 
 )
