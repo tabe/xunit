@@ -182,8 +182,10 @@
   (define (push-message! message status)
     (set! *messages* (cons (cons message status) *messages*)))
 
+  (define *passed* 0)
+
   (define (pass! result)
-    (set! *messages* (cons #t *messages*))
+    (set! *passed* (+ *passed* 1))
     result)
 
   (define-syntax add-message!
@@ -429,28 +431,26 @@
   (define-assert-predicate who-condition?)
 
   (define (report)
-    (call-with-values
-        (lambda () (partition boolean? *messages*))
-      (lambda (passed alt)
-        (for-each
-         (lambda (e)
-           (display (car e) (current-error-port))
-           (newline (current-error-port)))
-         (reverse alt))
-        (flush-output-port (current-error-port))
-        (let ((failed (filter (lambda (e) (eq? 'failed (cdr e))) alt))
-              (skipped (filter (lambda (e) (eq? 'skipped (cdr e))) alt)))
-          (display (length passed))
-          (display " passed, ")
-          (display (length failed))
-          (display " failed, ")
-          (display (length skipped))
-          (display " skipped.\n")
-          (if (zero? (length failed))
-              (exit)
-              (exit #f))))))
+    (for-each
+     (lambda (e)
+       (display (car e) (current-error-port))
+       (newline (current-error-port)))
+     (reverse *messages*))
+    (flush-output-port (current-error-port))
+    (let ((failed (filter (lambda (e) (eq? 'failed (cdr e))) *messages*))
+          (skipped (filter (lambda (e) (eq? 'skipped (cdr e))) *messages*)))
+      (display *passed*)
+      (display " passed, ")
+      (display (length failed))
+      (display " failed, ")
+      (display (length skipped))
+      (display " skipped.\n")
+      (if (zero? (length failed))
+          (exit)
+          (exit #f))))
 
   (define (reset!)
-    (set! *messages* '()))
+    (set! *messages* '())
+    (set! *passed* 0))
 
 )
