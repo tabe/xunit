@@ -177,26 +177,26 @@
           reset!)
   (import (rnrs))
 
-  (define *result* #t)
-
-  (define (set-result! r)
-    (set! *result* r))
-
   (define *messages* '())
 
-  (define (push-message! message)
-    (set! *messages* (cons (string-append message "\n") *messages*)))
+  (define (push-message! message status)
+    (set! *messages* (cons (cons message status) *messages*)))
+
+  (define (pass! result)
+    (set! *messages* (cons #t *messages*))
+    result)
 
   (define-syntax add-message!
     (syntax-rules ()
       ((_ message)
-       (push-message! message))))
+       (add-message! message 'failed))
+      ((_ message status)
+       (push-message! message status))))
 
   (define-syntax fail!
     (syntax-rules ()
       ((_ message)
        (begin
-         (set-result! #f)
          (add-message! message)
          #f))
       ((_ expected expr actual)
@@ -221,16 +221,15 @@
                               (begin
                                 (put-string port "\n  ")
                                 (put-datum port 'assertion))
-                              ...))))))))
+                              ...)))
+            'skipped)))))
 
   (define-syntax assert-equivalence
     (syntax-rules ()
       ((_ equiv expected expr)
        (let ((actual expr))
-         (guard (con
-                 ((assertion-violation? con)
-                  (fail! expected expr actual)))
-           (assert (equiv expected actual)))))))
+         (cond ((equiv expected actual) => pass!)
+               (else (fail! expected expr actual)))))))
 
   (define-syntax assert-predicate
     (lambda (x)
@@ -240,14 +239,13 @@
            #'(let ((t0 expr0)
                    (t1 expr1)
                    ...)
-               (guard (con
-                       ((assertion-violation? con)
-                        (fail!
-                         (call-with-string-output-port
-                          (lambda (port)
-                            (put-datum port '(pred expr0 expr1 ...))
-                            (put-string port " expected to be true, but #f"))))))
-                 (assert (pred t0 t1 ...)))))))))
+               (cond ((pred t0 t1 ...) => pass!)
+                     (else
+                      (fail!
+                       (call-with-string-output-port
+                        (lambda (port)
+                          (put-datum port '(pred expr0 expr1 ...))
+                          (put-string port " expected to be true, but #f"))))))))))))
 
   (define-syntax define-assert-equivalence
     (lambda (x)
@@ -275,7 +273,7 @@
     (syntax-rules ()
       ((_ pred expr ...)
        (guard (obj
-               ((pred obj))
+               ((pred obj) => pass!)
                (else (fail!
                       (call-with-string-output-port
                        (lambda (port)
@@ -431,19 +429,28 @@
   (define-assert-predicate who-condition?)
 
   (define (report)
-    (for-each
-     (lambda (e) (display e (current-error-port)))
-     (reverse *messages*))
-    (flush-output-port (current-error-port))
-    (cond (*result*
-           (display "passed.\n")
-           (exit))
-          (else
-           (display "failed.\n")
-           (exit #f))))
+    (call-with-values
+        (lambda () (partition boolean? *messages*))
+      (lambda (passed alt)
+        (for-each
+         (lambda (e)
+           (display (car e) (current-error-port))
+           (newline (current-error-port)))
+         (reverse alt))
+        (flush-output-port (current-error-port))
+        (let ((failed (filter (lambda (e) (eq? 'failed (cdr e))) alt))
+              (skipped (filter (lambda (e) (eq? 'skipped (cdr e))) alt)))
+          (display (length passed))
+          (display " passed, ")
+          (display (length failed))
+          (display " failed, ")
+          (display (length skipped))
+          (display " skipped.\n")
+          (if (zero? (length failed))
+              (exit)
+              (exit #f))))))
 
   (define (reset!)
-    (set-result! #t)
     (set! *messages* '()))
 
 )
