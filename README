@@ -10,7 +10,7 @@ New BSD License
 We propose an xUnit test utility (xunit) in which you can assert and
 investigate if a testee program's behaviour satisfies expected requirements.
 The way we recommend to specify expected requirements is in terms of
-predicates and equivalence relations, because they are suitable to
+predicates, especially equivalence relations, because they are suitable to
 detect fundamental properties of the dynamic environment of, and by,
 Scheme programs.
 
