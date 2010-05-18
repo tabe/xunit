@@ -175,7 +175,7 @@
           skip-unless
           report
           reset!)
-  (import (rnrs))
+  (import (rnrs (6)))
 
   (define *messages* '())
 
