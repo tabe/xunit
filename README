@@ -3,3 +3,19 @@ An R6RS library for xUnit
 == License
 
 New BSD License
+
+
+== Introduction
+
+We propose an xUnit test utility (xunit) in which you can assert and
+investigate if a testee program's behaviour satisfies expected requirements.
+The way we recommend to specify expected requirements is in terms of
+predicates and equivalence relations, because they are suitable to
+detect fundamental properties of the dynamic environment of, and by,
+Scheme programs.
+
+(xunit) offers you useful macros which contain
+* assertions for standard predicates and equivalence relations,
+* 'define-assert-equivalence', defining a custom assertion on some
+   equivalence relation, and
+* 'define-assert-predicate', defining a custom assertion on some predicate.
