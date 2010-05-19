@@ -1,11 +1,14 @@
-SCHEME = ypsilon --sitelib=.
+MOSH = mosh --loadpath=.
+YPSILON = ypsilon --sitelib=.
 
 .PHONY: check test failure
 
 check: test
 
 test:
-	$(SCHEME) tests/test.scm
+	$(MOSH) tests/test.scm
+	$(YPSILON) tests/test.scm
 
 failure:
-	$(SCHEME) tests/failure.scm
+	-$(MOSH) tests/failure.scm
+	-$(YPSILON) tests/failure.scm
