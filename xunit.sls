@@ -1,3 +1,4 @@
+#!r6rs
 ;;
 ;;   Copyright (c) 2009,2010 Takeshi Abe. All rights reserved.
 ;;
